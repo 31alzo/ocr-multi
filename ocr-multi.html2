@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCR Tool for ITC Avant Garde Gothic</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --secondary: #e74c3c;
+      --light: #ecf0f1;
+      --dark: #2c3e50;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--light);
+      padding: 20px;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 30px;
+    }
+    
+    .upload-area {
+      border: 2px dashed var(--primary);
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .upload-area:hover {
+      background: rgba(44, 62, 80, 0.05);
+    }
+    
+    #imageInput {
+      display: none;
+    }
+    
+    .preview-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .image-preview {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      resize: vertical;
+      margin-bottom: 20px;
+    }
+    
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .btn:hover {
+      background: var(--secondary);
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+      background: #95a5a6;
+    }
+    
+    .status {
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    .progress-container {
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--secondary);
+      width: 0%;
+      transition: width 0.3s;
+    }
+    
+    .features {
+      margin-top: 30px;
+    }
+    
+    .feature {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .feature-icon {
+      margin-right: 15px;
+      color: var(--secondary);
+      font-size: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .btn {
+        width: 100%;
+        margin-right: 0;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-text-height"></i> ITC Avant Garde Gothic OCR Tool</h1>
+    
+    <div class="upload-area" id="uploadArea">
+      <div style="font-size: 50px; margin-bottom: 15px; color: var(--primary);">
+        <i class="fas fa-cloud-upload-alt"></i>
+      </div>
+      <h3>Drag & drop images or click to select</h3>
+      <p>Optimized for ITC Avant Garde Gothic Condensed Book</p>
+      <input type="file" id="imageInput" accept="image/*" multiple>
+    </div>
+    
+    <div class="preview-container" id="previewContainer"></div>
+    
+    <div class="status" id="status">
+      <div>Ready to process images</div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+    
+    <textarea id="outputText" placeholder="Extracted text will appear here..."></textarea>
+    
+    <div>
+      <button class="btn" id="extractBtn"><i class="fas fa-magic"></i> Extract Text</button>
+      <button class="btn btn-secondary" id="clearBtn"><i class="fas fa-trash"></i> Clear All</button>
+      <button class="btn" id="copyBtn"><i class="fas fa-copy"></i> Copy Text</button>
+    </div>
+    
+    <div class="features">
+      <h3><i class="fas fa-star"></i> Special Features:</h3>
+      
+      <div class="feature">
+        <div class="feature-icon"><i class="fas fa-font"></i></div>
+        <div>Optimized for <strong>ITC Avant Garde Gothic Condensed Book</strong></div>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon"><i class="fas fa-filter"></i></div>
+        <div>Automatic filtering of unwanted text patterns</div>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon"><i class="fas fa-highlighter"></i></div>
+        <div>Supports white text with black outlines (common in videos)</div>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+        <div>iPhone Live Text compatible</div>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon"><i class="fas fa-image"></i></div>
+        <div>4K image processing for best results</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const imageInput = document.getElementById('imageInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const previewContainer = document.getElementById('previewContainer');
+    const outputText = document.getElementById('outputText');
+    const status = document.getElementById('status');
+    const progressBar = document.getElementById('progressBar');
+    const extractBtn = document.getElementById('extractBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    
+    // Banned patterns (case insensitive)
+    const bannedPatterns = [
+      /sexmex\.?xxx/gi,
+      /www\.?sexmex\.?xxx/gi,
+      /SEXM/gi,
+      /THE BEST LATIN/gi,
+      /logo/gi,
+      /watermark/gi,
+      /copyright/gi
+    ];
+    
+    // Image preview handler
+    imageInput.addEventListener('change', function(e) {
+      previewContainer.innerHTML = '';
+      const files = Array.from(e.target.files);
+      
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.classList.add('image-preview');
+          previewContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+      
+      status.querySelector('div').textContent = `${files.length} image(s) ready for processing`;
+    });
+    
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.style.background = 'rgba(44, 62, 80, 0.1)';
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.style.background = '';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.background = '';
+      imageInput.files = e.dataTransfer.files;
+      const event = new Event('change');
+      imageInput.dispatchEvent(event);
+    });
+    
+    // Text extraction
+    extractBtn.addEventListener('click', async () => {
+      const files = Array.from(imageInput.files);
+      if (files.length === 0) {
+        status.querySelector('div').textContent = 'Please select images first';
+        return;
+      }
+      
+      outputText.value = '';
+      let allText = '';
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const progress = ((i / files.length) * 100).toFixed(0);
+        progressBar.style.width = `${progress}%`;
+        status.querySelector('div').textContent = `Processing image ${i + 1} of ${files.length}...`;
+        
+        try {
+          const result = await Tesseract.recognize(
+            file,
+            'eng', // English language
+            {
+              logger: m => {
+                if (m.status === 'recognizing text') {
+                  const progress = Math.round(m.progress * 100);
+                  progressBar.style.width = `${progress}%`;
+                }
+              },
+              tessedit_pageseg_mode: 6, // Assume a single uniform block of text
+              tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?()%-',
+              preserve_interword_spaces: '1'
+            }
+          );
+          
+          let text = result.data.text;
+          
+          // Filter banned patterns
+          bannedPatterns.forEach(pattern => {
+            text = text.replace(pattern, '');
+          });
+          
+          // Clean up the text
+          text = text.trim()
+            .replace(/\n{3,}/g, '\n\n') // Remove excessive newlines
+            .replace(/\s{2,}/g, ' ');   // Remove excessive spaces
+          
+          allText += `\n\n─── Image ${i + 1} ───\n${text}`;
+          
+        } catch (error) {
+          console.error('Error processing image:', error);
+          allText += `\n\n─── Error with Image ${i + 1} ───\nFailed to extract text`;
+        }
+      }
+      
+      outputText.value = allText.trim();
+      progressBar.style.width = '100%';
+      status.querySelector('div').textContent = `Successfully processed ${files.length} image(s)`;
+    });
+    
+    // Copy text to clipboard
+    copyBtn.addEventListener('click', () => {
+      outputText.select();
+      document.execCommand('copy');
+      status.querySelector('div').textContent = 'Text copied to clipboard!';
+      setTimeout(() => {
+        status.querySelector('div').textContent = 'Ready for next processing';
+      }, 2000);
+    });
+    
+    // Clear all
+    clearBtn.addEventListener('click', () => {
+      imageInput.value = '';
+      previewContainer.innerHTML = '';
+      outputText.value = '';
+      status.querySelector('div').textContent = 'All data cleared';
+      progressBar.style.width = '0%';
+    });
+    
+    // iPhone Live Text detection
+    if (window.ApplePaySession) {
+      status.querySelector('div').innerHTML += '<br><small>You can use iPhone Live Text for extraction!</small>';
+    }
+  </script>
+</body>
+</html>
